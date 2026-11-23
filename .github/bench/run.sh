@@ -26,7 +26,8 @@ for i in $(seq 1 $(( WARMUP_RUNS + BENCHMARK_RUNS ))); do
   # Diagnostics for cache misses: files the build generated or changed (source tree and DerivedSources), with hashes.
   { echo "## git status"; git status --porcelain --untracked-files=all | head -200
     echo "## generated in source tree"; git status --porcelain --untracked-files=all | awk '{print $2}' | while read -r f; do [ -f "$f" ] && shasum "$f"; done | head -200
-    echo "## DerivedSources"; find "$DD/Build/Intermediates.noindex" -path '*DerivedSources*' -type f \( -name '*.swift' -o -name '*.h' -o -name '*.m' \) -exec shasum {} + 2>/dev/null | sed "s#$DD#DD#" | sort -k2 | head -400
+    echo "## generated, git-ignored"; for g in firefox-ios/Client/Generated firefox-ios/Storage/Generated; do find "$g" -type f -exec shasum {} + 2>/dev/null; done | sort -k2
+    echo "## DerivedSources"; find "$DD/Build/Intermediates.noindex" "$HOME/.bitrise/cache/xcode-ptd" -path '*DerivedSources*' -type f \( -name '*.swift' -o -name '*.h' -o -name '*.m' \) -exec shasum {} + 2>/dev/null | sed "s#$DD#DD#" | sort -k2 | head -400
   } > "$LOGS/$LABEL-generated.txt" 2>&1 || true
   printf '\n// benchmark incremental change %s\n' "$LABEL" >> "$INCREMENTAL_FILE"
   INCR=$(timed_build "$DD" "$LOGS/$LABEL-incremental.log"); git checkout -- "$INCREMENTAL_FILE"; echo "incremental: ${INCR}s"

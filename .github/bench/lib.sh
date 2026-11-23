@@ -64,7 +64,11 @@ JSON
 # Tuning experiments: extra xcodebuild arguments from the workflow's xcodebuild_args input (space-separated
 # KEY=VALUE build settings or flags), plus Xcode's per-task timing summary in every build log.
 XCB_EXTRA=(-showBuildTimingSummary)
-if [ -n "${BENCH_XCB_ARGS:-}" ]; then read -r -a _xcb_args <<< "$BENCH_XCB_ARGS"; XCB_EXTRA+=("${_xcb_args[@]}"); fi
+if [ -n "${BENCH_XCB_ARGS:-}" ]; then
+  read -r -a _xcb_args <<< "$BENCH_XCB_ARGS"
+  # env:NAME=VALUE exports an environment variable for the build (and its script phases) instead of passing it to xcodebuild
+  for _a in "${_xcb_args[@]}"; do case "$_a" in env:*) export "${_a#env:}" ;; *) XCB_EXTRA+=("$_a") ;; esac; done
+fi
 
 # Build Timing Summary of every log -> $BENCH_OUT/timing.txt (task type | count | seconds, summed over tasks)
 timing_summaries() {
