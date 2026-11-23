@@ -72,6 +72,9 @@ ALLOW_RESERVED=""
 GLEAN_NAMESPACE=Glean
 DOCS_DIRECTORY=""
 BUILD_DATE=""
+# Benchmark: a fixed build date (or 0 = none) keeps the generated Metrics.swift identical between builds, so Bitrise
+# Build Cache can reuse its compile results. Unset outside the benchmark, so normal builds are unchanged.
+if [ -n "${BENCH_GLEAN_BUILD_DATE:-}" ]; then BUILD_DATE="--option build_date=$BENCH_GLEAN_BUILD_DATE"; fi
 EXPIRE_VERSION=""
 declare -a YAML_FILES=()
 OUTPUT_DIR="${SOURCE_ROOT}/${PROJECT}/Generated"

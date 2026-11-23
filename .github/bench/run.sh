@@ -5,13 +5,15 @@ source "$(dirname "$0")/lib.sh"
 cd "$GITHUB_WORKSPACE"
 LOGS="$BENCH_OUT/logs"; mkdir -p "$LOGS"
 
+# BENCH_GLEAN_BUILD_DATE=0: the Glean code generator (Client, Storage) otherwise writes the current time into
+# Metrics.swift on every build, which changes those targets' inputs and every dependant's cache keys.
 timed_build() { # $1 = derived data, $2 = log
   local start end xc
   start=$(now)
   xcodebuild -project "$FIREFOX_PROJECT" -scheme "$FIREFOX_SCHEME" -configuration "$FIREFOX_CONFIGURATION" \
     -destination "$BUILD_DESTINATION" -derivedDataPath "$1" -clonedSourcePackagesDirPath "$SPM_DIR" \
     -disableAutomaticPackageResolution -skipMacroValidation -skipPackagePluginValidation \
-    ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= "${XCB_EXTRA[@]}" \
+    ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= BENCH_GLEAN_BUILD_DATE=0 "${XCB_EXTRA[@]}" \
     build > "$2" 2>&1 || { tail -n 80 "$2" >&2; return 1; }
   end=$(now); xc=$(xc_seconds "$2")
   if [ -n "$xc" ]; then echo "$xc"; else python3 -c "print(round($end-$start,3))"; fi
