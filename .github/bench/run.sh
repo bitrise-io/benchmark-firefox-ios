@@ -31,7 +31,7 @@ for i in $(seq 1 $(( WARMUP_RUNS + BENCHMARK_RUNS ))); do
     echo "## generated, git-ignored"; for g in firefox-ios/Client/Generated firefox-ios/Storage/Generated; do find "$g" -type f -exec shasum {} + 2>/dev/null; done | sort -k2
     echo "## DerivedSources"; find "$DD/Build/Intermediates.noindex" "$HOME/.bitrise/cache/xcode-ptd" -path '*DerivedSources*' -type f \( -name '*.swift' -o -name '*.h' -o -name '*.m' \) -exec shasum {} + 2>/dev/null | sed "s#$DD#DD#" | sort -k2 | head -400
   } > "$LOGS/$LABEL-generated.txt" 2>&1 || true
-  printf '\n// benchmark incremental change %s\n' "$LABEL" >> "$INCREMENTAL_FILE"
+  printf '\n// benchmark incremental change %s %s\n' "$LABEL" "${GITHUB_RUN_ID:-local}.${GITHUB_RUN_ATTEMPT:-1}" >> "$INCREMENTAL_FILE"
   INCR=$(timed_build "$DD" "$LOGS/$LABEL-incremental.log"); git checkout -- "$INCREMENTAL_FILE"; echo "incremental: ${INCR}s"
   echo "${BENCHMARK_PROJECT},clean_build,${MACHINE_KEY},${LABEL},${CLEAN}" >> "$BENCH_OUT/results.csv"
   echo "${BENCHMARK_PROJECT},incremental_build,${MACHINE_KEY},${LABEL},${INCR}" >> "$BENCH_OUT/results.csv"
